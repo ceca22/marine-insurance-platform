@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InsuranceApp.DataAccess\InsuranceApp.DataAccess.csproj" />
+    <ProjectReference Include="..\InsuranceApp.DataAccess\InsuranceApp.DataAccess.csproj" />
+    <ProjectReference Include="..\InsuranceApp.Domain\InsuranceApp.Domain.csproj" />
+    <ProjectReference Include="..\InsuranceApp.Mapper\InsuranceApp.Mapper.csproj" />
+    <ProjectReference Include="..\InsuranceApp.Models\InsuranceApp.Models.csproj" />
+    <ProjectReference Include="..\InsuranceApp.Shared\InsuranceApp.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
