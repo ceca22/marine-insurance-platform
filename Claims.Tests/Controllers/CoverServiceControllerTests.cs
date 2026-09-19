@@ -1,13 +1,9 @@
 ﻿
 using InsuranceApp.Auditing.Auditing;
-using InsuranceApp.DataAccess.Implementations;
 using InsuranceApp.DataAccess.Interfaces;
-using InsuranceApp.Domain.Enums;
 using InsuranceApp.Domain.Models;
 using InsuranceApp.Mapper;
-using InsuranceApp.Models.Claim;
 using InsuranceApp.Services.Implementations;
-using InsuranceApp.Services.Interfaces;
 using InsuranceApp.Shared.Exceptions;
 using Moq;
 using Xunit;
@@ -74,6 +70,8 @@ namespace Claims.Tests.Controllers
             var result = await _coverService.DeleteEntityAsync("111");
 
             Assert.True(result);
+            //making sure the audit got executed as well
+            _auditer.Verify(x => x.AuditCoverAsync("111", "DELETE"), Times.Once);
         }
 
         [Fact]
@@ -85,6 +83,8 @@ namespace Claims.Tests.Controllers
             var result = await _coverService.DeleteEntityAsync("1113");
 
             Assert.False(result);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditCoverAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -97,6 +97,8 @@ namespace Claims.Tests.Controllers
             var result = await _coverService.CreateAsync(coverModel);
 
             Assert.NotNull(result);
+            //making sure the audit got executed as well
+            _auditer.Verify(x => x.AuditCoverAsync(It.IsAny<string>(), "POST"), Times.Once);
         }
 
         [Fact]
@@ -111,6 +113,8 @@ namespace Claims.Tests.Controllers
             Assert.Equal("Invalid start date", exception.Message);
             //making sure the service stopped and never made a call to create a cover since the object is not valid
             _coverRepository.Verify(x => x.CreateAsync(It.IsAny<Cover>()), Times.Never);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditCoverAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -125,29 +129,8 @@ namespace Claims.Tests.Controllers
             Assert.Equal("Cover durability should be 1 year", exception.Message);
             //making sure the service stopped and never made a call to create a claim since the object is not valid
             _coverRepository.Verify(x => x.CreateAsync(It.IsAny<Cover>()), Times.Never);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditCoverAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
-
-        //[Fact]
-        //public async Task CreateAsync_WhenCoverIsExpired_ThrowsClaimException()
-        //{
-        //    var cover = InsuranceAppTestData.Covers[0];
-        //    var claimObject = new ClaimModel()
-        //    {
-        //        CoverId = cover.Id,
-        //        Created = DateTime.Now.AddMonths(8),
-        //        Name = "Claim 1",
-        //        Type = ClaimType.BadWeather,
-        //        DamageCost = 33000
-        //    };
-
-        //    _coverRepository.Setup(x => x.GetAsync(cover.Id)).ReturnsAsync(cover);
-
-        //    var exception = await Assert.ThrowsAsync<ClaimException>(() => _claimService.CreateAsync(claimObject));
-
-        //    //checking the result
-        //    Assert.Equal("Cover is expired", exception.Message);
-        //    //making sure the service stopped and never made a call to create a claim since the object is not valid
-        //    _claimRepository.Verify(x => x.CreateAsync(It.IsAny<Claim>()), Times.Never);
-        //}
     }
 }

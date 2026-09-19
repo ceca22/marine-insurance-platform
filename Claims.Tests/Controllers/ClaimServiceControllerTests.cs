@@ -75,6 +75,8 @@ namespace Claims.Tests.Controllers
             var result = await _claimService.DeleteEntityAsync("szdxfcgv");
 
             Assert.True(result);
+            //making sure the audit got executed as well
+            _auditer.Verify(x => x.AuditClaimAsync("szdxfcgv", "DELETE"), Times.Once);
         }
 
         [Fact]
@@ -86,28 +88,24 @@ namespace Claims.Tests.Controllers
             var result = await _claimService.DeleteEntityAsync("szdxfcgv1");
 
             Assert.False(result);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditClaimAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task CreateAsync_WhenClaimObjectIsValid_ReturnsClaimObject()
         {
             var cover = InsuranceAppTestData.Covers[0];
-
-            var claimObject = new ClaimModel()
-            {
-                CoverId = cover.Id,
-                Created = DateTime.Now.AddDays(1),
-                Name = "Claim 1",
-                Type = ClaimType.BadWeather,
-                DamageCost = 33000
-            };
+            var claimModel = InsuranceAppTestData.Claims[0].ToClaimModel();
 
             _coverRepository.Setup(x => x.GetAsync(cover.Id)).ReturnsAsync(InsuranceAppTestData.Covers[0]);
             _claimRepository.Setup(x => x.CreateAsync(It.IsAny<Claim>())).ReturnsAsync((Claim claim) => claim);
 
-            var result = await _claimService.CreateAsync(claimObject);
+            var result = await _claimService.CreateAsync(claimModel);
 
             Assert.NotNull(result);
+            //making sure the audit got executed as well
+            _auditer.Verify(x => x.AuditClaimAsync(It.IsAny<string>(), "POST"), Times.Once);
         }
 
         [Fact]
@@ -124,6 +122,8 @@ namespace Claims.Tests.Controllers
             Assert.Equal("Cover doesn't exist", exception.Message);
             //making sure the service stopped and never made a call to create a claim since the object is not valid
             _claimRepository.Verify(x => x.CreateAsync(It.IsAny<Claim>()), Times.Never);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditClaimAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -140,6 +140,8 @@ namespace Claims.Tests.Controllers
             _claimRepository.Verify(x => x.CreateAsync(It.IsAny<Claim>()), Times.Never);
             //making sure the service stopped and never made a call to get the cover since the object is not valid
             _coverRepository.Verify(x => x.GetAsync(It.IsAny<string>()), Times.Never);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditClaimAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -157,6 +159,8 @@ namespace Claims.Tests.Controllers
             Assert.Equal("Cover expired", exception.Message);
             //making sure the service stopped and never made a call to create a claim since the object is not valid
             _claimRepository.Verify(x => x.CreateAsync(It.IsAny<Claim>()), Times.Never);
+            //making sure the audit did not get executed
+            _auditer.Verify(x => x.AuditClaimAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
     }
 }

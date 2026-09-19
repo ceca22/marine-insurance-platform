@@ -44,7 +44,7 @@ namespace InsuranceApp.Services.Implementations
             }
 
             await _coverRepository.DeleteAsync(cover);
-            await _auditer.AuditCoverAsync(cover.Id, "POST");
+            await _auditer.AuditCoverAsync(cover.Id, "DELETE");
 
             return true;
         }
